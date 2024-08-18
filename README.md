@@ -9,7 +9,8 @@
     - METHODS
         - syn_noord.csv
         - syn_ord.csv
-    
+
+1. Preprocess creates test set and a imbalanced version of the original data 
 ```
 python preprocess.py --dataname DATANAME --testsize TESTSIZE --imbalance_ratio IMB --target TARGET
 python preprocess.py --dataname "ADULT" --testsize 4000 --imbalance_ratio 0.02 --target income
@@ -18,8 +19,9 @@ python preprocess.py --dataname "ADULT" --testsize 4000 --imbalance_ratio 0.02 -
 - Test size consists of TESTSIZE instances equally majority and minority
 - imbalance_ratio of 0.02 gives 2 minority instances for every 100 majority instances
 - Target column is a binary categorical column in original.csv
+- OUTPUT: test.csv, imbalanced_noord.csv
 
-
+2. Used to convert the binary target to ternary target variable.
 ```
 python detect_overlap.py --dataname DATANAME --target INCOME --threshold THRES
 python detect_overlap.py --dataname adult --target income --threshold 0.4
@@ -28,7 +30,11 @@ python detect_overlap.py --dataname adult --target income --threshold 0.4
 - Threshold value THRES is ideally 0.3, Vary between 0.15 (more overlap) to 0.45 (less overlap)
 - Target column is a binary categorical column in imbalanced_noord.csv
 - OUTPUT: imbalanced_ord.csv
-## this could create ORD Version with ternary target for imbalanced data
+
+- NOTE: target in the output file has column name : cond and it has values 0,1,2
+    - C00 clear majority - 0
+    - C01 overlap majority - 1
+    - C1  minority - 2
 
 
 
