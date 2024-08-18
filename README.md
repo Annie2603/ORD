@@ -37,10 +37,11 @@ python detect_overlap.py --dataname adult --target income --threshold 0.4
     - C1  minority - 2
 
 
+----
 
 #### CREATE SYNTHETIC data and save as noord and ord in the same folder
-## give naming conventions - method/noord.csv, method/ord.csv
-## Burden of training synthesizer and sampling enough minority offloaded? 
+-  give naming conventions - method/noord.csv, method/ord.csv
+- Burden of training synthesizer and sampling enough minority offloaded? 
 
 python compute_mle.py --augment true/false --method "TABSYN/DDPM/CTABGAN"
 ## compare the noord, ord with the test in the folder
