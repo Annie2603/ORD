@@ -1,6 +1,7 @@
 # ORD
 
 ## Structure
+- Naming conventions
 - Data folder has 
     - original.csv
     - test.csv
@@ -10,7 +11,7 @@
         - syn_noord.csv
         - syn_ord.csv
 
-1. Preprocess creates test set and a imbalanced version of the original data 
+## Preprocess creates test set and a imbalanced version of the original data 
 ```
 python preprocess.py --dataname DATANAME --testsize TESTSIZE --imbalance_ratio IMB --target TARGET
 python preprocess.py --dataname "ADULT" --testsize 4000 --imbalance_ratio 0.02 --target income
@@ -21,7 +22,8 @@ python preprocess.py --dataname "ADULT" --testsize 4000 --imbalance_ratio 0.02 -
 - Target column is a binary categorical column in original.csv
 - OUTPUT: test.csv, imbalanced_noord.csv
 
-2. Used to convert the binary target to ternary target variable.
+---
+## Used to convert the binary target to ternary target variable.
 ```
 python detect_overlap.py --dataname DATANAME --target INCOME --threshold THRES
 python detect_overlap.py --dataname adult --target income --threshold 0.4
@@ -39,13 +41,18 @@ python detect_overlap.py --dataname adult --target income --threshold 0.4
 
 ----
 
-#### CREATE SYNTHETIC data and save as noord and ord in the same folder
--  give naming conventions - method/noord.csv, method/ord.csv
-- Burden of training synthesizer and sampling enough minority offloaded? 
+## Create SYN data and save as noord and ord in the same folder
+- Naming conventions - method/syn_noord.csv, method/syn_ord.csv
+- Eg. for ctgan create a folder in data/{DATANAME}/ctgan/ and save syn_noord.csv & syn_ord.csv
+---
+## Compute Machine Learning Efficacy - Main metric in paper
+```
+python compute_mle.py --dataname adult --target income --method tabsyn
+python compute_mle.py --dataname DATANAME --target TARGET --method METHODNAME
+```
+- Compare the noord, ord with the test in the data folder
 
-python compute_mle.py --augment true/false --method "TABSYN/DDPM/CTABGAN"
-## compare the noord, ord with the test in the folder
-## compare the noord, ord but along with real minority for classfier
+---
 
 python compute_synthetic_acc.py --method "TABSYN/DDPM/CTABGAN"
 ## Random oracle : train on real_org \ Imbalanced, test on noord.csv and ord.csv
