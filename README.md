@@ -59,13 +59,15 @@ python compute_mle.py --dataname DATANAME --target TARGET --method METHODNAME
  python experiments/synthetic_acc.py --dataname DATANAME --target TARGET --method SYNTHESIZERFOLDER
  ```
 
+### Python and package versions
+- Code runs fine with Python 3.12 and latest version of all packages - pandas, numpy, scikit-learn etc.
+```
+pandas                   2.2.2
+numpy                    2.0.0
+matplotlib               3.9.0
+scikit-learn             1.5.0
+scipy                    1.13.1
+sdmetrics                0.14.1
+```
 
-notebooks are sufficient for auxillary experiments? 
-	- like before and after synthesis
-	- remove ord from real
-	
-	
-What about toy data? 
-- notebook
-- end_to_end ? - problem being synthesizers have different methods to run
 ```
