@@ -14,7 +14,7 @@
 ## Preprocess creates test set and a imbalanced version of the original data 
 ```
 python preprocess.py --dataname DATANAME --testsize TESTSIZE --imbalance_ratio IMB --target TARGET
-python preprocess.py --dataname "ADULT" --testsize 4000 --imbalance_ratio 0.02 --target income
+python preprocess.py --dataname adult --testsize 4000 --imbalance_ratio 0.02 --target income
 ```
 - Ensure original.csv in data/DATANAME folder 
 - Test size consists of TESTSIZE instances equally majority and minority
@@ -53,9 +53,12 @@ python compute_mle.py --dataname DATANAME --target TARGET --method METHODNAME
 - Compare the noord, ord with the test in the data folder
 
 ---
+## Use a classifier from real balanced (oracle) to estimate synthetic data quality
+```
+ python experiments/synthetic_acc.py --dataname adult --target income --method tabsyn
+ python experiments/synthetic_acc.py --dataname DATANAME --target TARGET --method SYNTHESIZERFOLDER
+ ```
 
-python compute_synthetic_acc.py --method "TABSYN/DDPM/CTABGAN"
-## Random oracle : train on real_org \ Imbalanced, test on noord.csv and ord.csv
 
 notebooks are sufficient for auxillary experiments? 
 	- like before and after synthesis
