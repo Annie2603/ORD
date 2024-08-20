@@ -11,6 +11,17 @@
         - syn_noord.csv
         - syn_ord.csv
 
+### Python and package versions
+- Code runs fine with Python 3.12 and latest version of all packages - pandas, numpy, scikit-learn etc.
+```
+pandas                   2.2.2
+numpy                    2.0.0
+matplotlib               3.9.0
+scikit-learn             1.5.0
+scipy                    1.13.1
+sdmetrics                0.14.1
+```
+
 ## Preprocess creates test set and a imbalanced version of the original data 
 ```
 python preprocess.py --dataname DATANAME --testsize TESTSIZE --imbalance_ratio IMB --target TARGET
@@ -58,16 +69,5 @@ python compute_mle.py --dataname DATANAME --target TARGET --method METHODNAME
  python experiments/synthetic_acc.py --dataname adult --target income --method tabsyn
  python experiments/synthetic_acc.py --dataname DATANAME --target TARGET --method SYNTHESIZERFOLDER
  ```
-
-### Python and package versions
-- Code runs fine with Python 3.12 and latest version of all packages - pandas, numpy, scikit-learn etc.
-```
-pandas                   2.2.2
-numpy                    2.0.0
-matplotlib               3.9.0
-scikit-learn             1.5.0
-scipy                    1.13.1
-sdmetrics                0.14.1
-```
 
 ```
