@@ -6,20 +6,13 @@ import pandas as pd
 import numpy as np
 
 import xgboost as xgb
-from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay, roc_auc_score, roc_curve, auc
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV
-
-from sklearn.calibration import CalibrationDisplay
-from sklearn.calibration import CalibratedClassifierCV
-
-import sdmetrics
 from sdmetrics.reports.single_table import QualityReport
 from sdmetrics.single_table import (BinaryAdaBoostClassifier, BinaryDecisionTreeClassifier, BinaryLogisticRegression, BinaryMLPClassifier)
 import argparse
+import os
 
 
 
@@ -70,50 +63,38 @@ def xgboost_train(X_train, y_train, EPOCHS=200):
     params = {
         'objective': 'binary:logistic',
     }
-
     model = xgb.train(params=params, dtrain=xgb_train, num_boost_round=n)   
+    # model = xgb.train(params=params, dtrain=xgb_train, num_boost_round=1)   
     return model
 
 def xgb_predict(model, X_test, y_test, threshold=0.5):
+    map = {}
     preds = model.predict(xgb.DMatrix(X_test))
     y_pred = [pred>=threshold for pred in preds]
     print(sum(y_pred))
     accuracy = accuracy_score(y_test, y_pred)
     print('XG: ', accuracy*100)
-    cm = confusion_matrix(y_test, y_pred)
-    ConfusionMatrixDisplay(confusion_matrix=cm).plot()
-    # find minority class accuracy 
-    print("Minority class accuracy: ", recall_score(y_test, y_pred, pos_label=1)*100)
-    print("Majority class accuracy: ", recall_score(y_test, y_pred, pos_label=0)*100)
-    # majority class accuracy
-    
+   
     preds = np.array([1-preds, preds]).T
-    print("ECE ", expected_calibration_error(preds, y_test))
-    roc_curve_plot(y_test, preds[:,1]) 
-    # return preds, y_pred
+    fpr, tpr, thresholds = roc_curve(y_test, preds[:,1]) 
+    roc_auc = auc(fpr, tpr)
+    print("ROC: ",roc_auc)
+    print("ECE: ", expected_calibration_error(preds, y_test)[0])
+    map['XG accuracy'] = accuracy
+    map['Min accuracy'] = recall_score(y_test, y_pred, pos_label=1)
+    map['Maj accuracy'] = recall_score(y_test, y_pred, pos_label=0)
+    map['ECE'] = expected_calibration_error(preds, y_test)[0]
+    map['AUC'] = roc_auc
+    return map
 
 
 def xgboost(X_train, y_train, X_test, y_test, EPOCHS=200):
     model = xgboost_train(X_train, y_train, EPOCHS)
-    xgb_predict(model, X_test, y_test)
-    return model
+    map = xgb_predict(model, X_test, y_test)
+    return map
 
 
-def roc_curve_plot(y_test, y_pred_proba):
-    # Calculate ROC curve
-    fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba) 
-    roc_auc = auc(fpr, tpr)
-    # Plot the ROC curve
-    plt.figure()  
-    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
-    plt.plot([0, 1], [0, 1], 'k--', label='No Skill')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve for Classification')
-    plt.legend()
-    plt.show()
+
 
 def find_meta_data(df, UNIQ_THRESHOLD=20):
     """segregating all columns into categorical (contains object type, integer
@@ -177,68 +158,110 @@ def MachineLearningAccuracy(test, train, metadata):
     )
     print(f"Scores - \nada: {ada}, \ndt: {dt}, \nlr: {lr}, \nmlp: {mlp}")
     print(f"avg: {(ada+dt+lr+mlp)/4}")
-    return (ada+dt+lr+mlp)/4
+    map = {
+        'ada': ada,
+        'dt': dt,
+        'lr': lr,
+        'mlp': mlp,
+        'AvgOf4 Acc': (ada+dt+lr+mlp)/4
+    }
+    return map
     
-
-DATANAME = 'adult'
-TARGET = 'income'
-METHOD = 'tabsyn'
 # parameters argument for the 3 using argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataname', type=str, default='adult')
 parser.add_argument('--target', type=str, default='income')
 parser.add_argument('--method', type=str, default='tabsyn')
+parser.add_argument('--n', type=str, default='1')
+parser.add_argument('--run', type=str, default='run1')
+
 args = parser.parse_args()
 
 DATANAME = args.dataname
 TARGET = args.target
 METHOD = args.method
+RUN = args.run
 
+N = int(args.n)
 
+# f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/ find how many csvs in this folder
+if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/'):
+    files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/')
+    N = len(files)
+else:
+    print("No files found")
+    sys.exit()
+if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/'):
+    files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/')
+    N = min(N,len(files))
+else:
+    print("No files found")
+    sys.exit()
 
 test = pd.read_csv(f'data/{DATANAME}/test.csv')
 X_test = test.drop(TARGET, axis=1)
 y_test = test[TARGET]
 
-
+results =[]
+results_nocond = []
+# save them as csv with N rows 
+# cols = XG, Min, Maj, ECE, AUC, Avg of 4, ada, dt, lr, mlp
+# save them as csv with N rows
 # # MLE - cond02 classifier
+for i in range(0,N):
+
+    synth = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/set{i}.csv')
+
+    synth[TARGET]= synth['cond'].apply(lambda x: 1 if x==2 else 0)
+
+    synth2 = synth[synth['cond']==2]
+    synth0 = synth[synth['cond']==0].sample(len(synth2), random_state=4)
+    train = pd.concat([synth2, synth0])
+    train.drop('cond', axis=1, inplace=True)
+
+    X_train = train.drop(TARGET, axis=1)
+    y_train = train[TARGET]
+        
+    map1 = xgboost(X_train, y_train, X_test, y_test)
 
 
-synth = pd.read_csv(f'data/{DATANAME}/{METHOD}/syn_ord.csv')
-
-synth[TARGET]= synth['cond'].apply(lambda x: 1 if x==2 else 0)
-
-synth2 = synth[synth['cond']==2]
-synth0 = synth[synth['cond']==0].sample(len(synth2), random_state=4)
-train = pd.concat([synth2, synth0])
-train.drop('cond', axis=1, inplace=True)
-
-X_train = train.drop(TARGET, axis=1)
-y_train = train[TARGET]
-    
-m = xgboost(X_train, y_train, X_test, y_test)
+    metadata = find_meta_data(train)
+    map2 = MachineLearningAccuracy(test, train, metadata)
+    map1.update(map2)
+    results.append(map1)
 
 
-metadata = find_meta_data(train)
-MachineLearningAccuracy(test, train, metadata)
 
-# # MLE no cond
+for i in range(0,N):
+    # # MLE no cond
 
-synth = pd.read_csv(f'data/{DATANAME}/{METHOD}/syn_noord.csv')
+    synth = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/set{i}.csv')
 
-synth2 = synth[synth[TARGET]==1]
-synth0 = synth[synth[TARGET]==0].sample(len(synth2), random_state=42)
-train = pd.concat([synth2, synth0])
+    synth2 = synth[synth[TARGET]==1]
+    synth0 = synth[synth[TARGET]==0].sample(len(synth2), random_state=42)
+    train = pd.concat([synth2, synth0])
 
-X_train = train.drop(TARGET, axis=1)
-y_train = train[TARGET]
+    X_train = train.drop(TARGET, axis=1)
+    y_train = train[TARGET]
 
-m = xgboost(X_train, y_train, X_test, y_test)
+    map1 = xgboost(X_train, y_train, X_test, y_test)
 
 
-metadata = find_meta_data(train)
-MachineLearningAccuracy(test, train, metadata)
+    metadata = find_meta_data(train)
+    map2 = MachineLearningAccuracy(test, train, metadata)
+    map1.update(map2)
+    results_nocond.append(map1)
+
+print(results)
+print(results_nocond)
+# save them as csv with N rows
+df = pd.DataFrame(results)
+df.to_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/results.csv', index=False)
+df = pd.DataFrame(results_nocond)
+df.to_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/results.csv', index=False)
+
+
 
 
 

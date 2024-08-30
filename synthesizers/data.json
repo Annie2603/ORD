@@ -1,0 +1,18 @@
+{
+    "adult":{
+        "syn": 15000,        
+        "target":"income"
+    },
+    "heloc":{
+        "syn": 4000,
+        "target":"RiskPerformance"
+    },
+    "fintech":{
+        "syn": 7000,
+        "target":"churn"
+    },
+    "cardio":{
+        "syn": 15000,
+        "target":"cardio"
+    }
+}

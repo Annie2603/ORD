@@ -10,7 +10,8 @@ import xgboost as xgb
 from xgboost import XGBClassifier
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay, roc_auc_score, roc_curve, auc
+
 import argparse
 
 
@@ -59,6 +60,9 @@ def xgb_predict(model, X_test, y_test, threshold=0.5):
     accuracy = accuracy_score(y_test, y_pred)
     print(accuracy*100)
     preds = np.array([1-preds, preds]).T
+    fpr, tpr, thresholds = roc_curve(y_test, preds[:,1]) 
+    roc_auc = auc(fpr, tpr)
+    print("ROC: ",roc_auc)
     return accuracy*100
 
 # # Train with real data
