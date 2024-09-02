@@ -9,7 +9,7 @@
 
 # conda activate tabsyn
 
-for run in "run1 run2"
+for run in "run1 run2 run3"
 do
     cd /mnt/nas/swethamagesh/tabsyn_vae_cond/tabsyn
     MYPATH='/mnt/nas/swethamagesh/ORD/data/'$1'/ctabsyn/'$run'/'$3
@@ -17,7 +17,7 @@ do
     mkdir -p $MYPATH
 
     # python main.py --dataname $4 --method vae --mode train --gpu $5
-    python main.py --dataname $4 --method tabsyn --mode train --gpu $5
+    # python main.py --dataname $4 --method tabsyn --mode train --gpu $5
 
     # if $3 is ord do the below else do something else
     if [ $3 == "ord" ]
@@ -35,9 +35,8 @@ do
             python main.py --dataname $4 --method tabsyn --mode sample --condition_by 1 --n_classes 2 --save_path $MYPATH/c1_$i.csv 
         done
     fi
-
+    echo "Sampling done"
 
     cd /mnt/nas/swethamagesh/ORD/
-    python synthesizers/process_synthesized.py --dataname $1 --method ctabsyn  --run $run --ord noord
-    python synthesizers/process_synthesized.py --dataname $1 --method ctabsyn  --run $run --ord ord
+    python synthesizers/process_synthesized.py --dataname $1 --method ctabsyn  --run $run --ord $3
 done

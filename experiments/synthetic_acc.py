@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay, roc_auc_score, roc_curve, auc
 
 import argparse
+import os
 
 
 def get_column_types(df, num_unique_threshold=20):
@@ -60,9 +61,9 @@ def xgb_predict(model, X_test, y_test, threshold=0.5):
     accuracy = accuracy_score(y_test, y_pred)
     print(accuracy*100)
     preds = np.array([1-preds, preds]).T
-    fpr, tpr, thresholds = roc_curve(y_test, preds[:,1]) 
-    roc_auc = auc(fpr, tpr)
-    print("ROC: ",roc_auc)
+    # fpr, tpr, thresholds = roc_curve(y_test, preds[:,1]) 
+    # roc_auc = auc(fpr, tpr)
+    # print("ROC: ",roc_auc)
     return accuracy*100
 
 # # Train with real data
@@ -71,11 +72,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dataname', type=str, default='adult')
 parser.add_argument('--target', type=str, default='income')
 parser.add_argument('--method', type=str, default='tabsyn')
+parser.add_argument('--run',type=str, default='run1')
 args = parser.parse_args()
 
 DATANAME = args.dataname
 TARGET = args.target
 METHOD = args.method
+RUN = args.run
 
 real_data = pd.read_csv(f'data/{DATANAME}/original.csv')
 
@@ -85,8 +88,9 @@ X_test = X_train[:200]
 y_test = y_train[:200]
 
 xgboost_model = xgboost(X_train, y_train)
+map={}
 
-def acc_no_cond(no_cond):
+def acc_no_cond(no_cond, map):
     test0 = no_cond[no_cond[TARGET]==0]
     test1 = no_cond[no_cond[TARGET]==1]
 
@@ -97,11 +101,13 @@ def acc_no_cond(no_cond):
     y_test1 = test1[TARGET]
 
     print('C0:', end='')
-    xgb_predict(xgboost_model, X_test0, y_test0)
+    map['C0']=xgb_predict(xgboost_model, X_test0, y_test0)
     print('C1:', end='')
-    xgb_predict(xgboost_model, X_test1, y_test1)
+    map['C1']=xgb_predict(xgboost_model, X_test1, y_test1)
+    return map
 
-def acc_cond(cond):
+
+def acc_cond(cond,map):
     # apply the condition cond == 2 gets 1 else 0
     cond[TARGET] = cond['cond'].apply(lambda x: 1 if x==2 else 0)
     cond[TARGET].value_counts()
@@ -120,31 +126,50 @@ def acc_cond(cond):
 
     print('C00: ',end='')
     c0=xgb_predict(xgboost_model, X_test0, y_test0)
-    print('C1:', end='')
+    print('C01: ',end='' )
+    c1=xgb_predict(xgboost_model, X_test1, y_test1)
+    print('C1 (cond):', end='')
     c2=xgb_predict(xgboost_model, X_test2, y_test2)
+    map['C00']=c0
+    map['C01']=c1
+    map['C1(cond)']=c2
+    return map
 
 
-    
-
-
-# ## No cond
-
-path = f'data/{DATANAME}/{METHOD}/syn_noord.csv'
-no_cond = pd.read_csv(path)
-no_cond[TARGET].value_counts()
-
-
-# ## Cond
-
-path = f'data/{DATANAME}/{METHOD}/syn_ord.csv'
-cond = pd.read_csv(path)
-cond['cond'].value_counts()
+if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/'):
+    files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/')
+    N = len(files)
+else:
+    print("No files found")
+    sys.exit()
+if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/'):
+    files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/')
+    N = min(N,len(files))
+else:
+    print("No files found")
+    sys.exit()
+N=N-1
+no_cond = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/set0.csv')
+cond = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/set0.csv')
+for i in range(1,N):
+    synth_nc = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/set{i}.csv')
+    synth_c = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/set{i}.csv')
+    no_cond=pd.concat([no_cond, synth_nc])
+    cond = pd.concat([cond, synth_c])
 
 
 print('Accuracy of No ord ')
-acc_no_cond(no_cond)
+map=acc_no_cond(no_cond,map)
 print('Accuracy of ORD')
-acc_cond(cond)
+map=acc_cond(cond,map)
+
+import json
+with open(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/syn_acc.json','w') as file:
+    json.dump(map, file)
+
+
+
+
 
 
 

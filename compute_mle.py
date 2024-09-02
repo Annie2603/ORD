@@ -187,6 +187,7 @@ N = int(args.n)
 
 # f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/ find how many csvs in this folder
 if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/'):
+    print(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/')
     files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/')
     N = len(files)
 else:
@@ -194,6 +195,7 @@ else:
     sys.exit()
 if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/'):
     files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/')
+    print(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/')
     N = min(N,len(files))
 else:
     print("No files found")
