@@ -189,14 +189,14 @@ N = int(args.n)
 if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/'):
     print(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/')
     files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/')
-    N = len(files)
+    N1 = len(files)
 else:
     print("No files found")
     sys.exit()
 if os.path.exists(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/'):
     files = os.listdir(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/')
     print(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/')
-    N = min(N,len(files))
+    N2= len(files)
 else:
     print("No files found")
     sys.exit()
@@ -211,7 +211,7 @@ results_nocond = []
 # cols = XG, Min, Maj, ECE, AUC, Avg of 4, ada, dt, lr, mlp
 # save them as csv with N rows
 # # MLE - cond02 classifier
-for i in range(0,N):
+for i in range(0,N1):
 
     synth = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/set{i}.csv')
 
@@ -233,9 +233,10 @@ for i in range(0,N):
     map1.update(map2)
     results.append(map1)
 
+df = pd.DataFrame(results)
+df.to_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/ord/results.csv', index=False)
 
-
-for i in range(0,N):
+for i in range(0,N2):
     # # MLE no cond
 
     synth = pd.read_csv(f'data/{DATANAME}/{METHOD}/{RUN}/evaluate/noord/set{i}.csv')
