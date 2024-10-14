@@ -1,0 +1,21 @@
+{
+    "name": "sevenblobs",
+    "task_type": "binclass",
+    "header": "infer",
+    "column_names": [
+        "x coord",
+        "y coord",
+        "class"
+    ],
+    "num_col_idx": [
+        0,
+        1
+    ],
+    "cat_col_idx": [],
+    "target_col_idx": [
+        2
+    ],
+    "file_type": "csv",
+    "data_path": "data/sevenblobs/sevenblobs.csv",
+    "test_path": null
+    }

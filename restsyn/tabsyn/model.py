@@ -95,7 +95,7 @@ class FourierEmbedding(torch.nn.Module):
         return x
 
 class MLPDiffusion(nn.Module):
-    def __init__(self, d_in, n_classes=2, dim_t = 512):
+    def __init__(self, d_in, constraint_dim=2, dim_t = 512):
         super().__init__()
         self.dim_t = dim_t
 
@@ -117,20 +117,20 @@ class MLPDiffusion(nn.Module):
             nn.SiLU(),
             nn.Linear(dim_t, dim_t)
         )
-        self.label_embed = nn.Sequential(
-            nn.Linear(n_classes, dim_t),
+        self.constraint_embed = nn.Sequential(
+            nn.Linear(constraint_dim, dim_t),
             nn.SiLU(),
             nn.Linear(dim_t, dim_t)
         )
     
-    def forward(self, x, noise_labels, label, class_labels=None):
+    def forward(self, x, noise_labels, constraint, class_labels=None):
         emb = self.map_noise(noise_labels)
         emb = emb.reshape(emb.shape[0], 2, -1).flip(1).reshape(*emb.shape) # swap sin/cos
         emb = self.time_embed(emb)
 
         #####
-        label = label.float()
-        label_emb = self.label_embed(label)
+        constraint = constraint.float()
+        label_emb = self.constraint_embed(constraint)
         #####
         x = self.proj(x) + emb + label_emb
         return self.mlp(x)
@@ -153,7 +153,7 @@ class Precond(nn.Module):
         ###########
         self.denoise_fn_F = denoise_fn
 
-    def forward(self, x, sigma, label):
+    def forward(self, x, sigma, constraint):
 
         x = x.to(torch.float32)
 
@@ -166,7 +166,7 @@ class Precond(nn.Module):
         c_noise = sigma.log() / 4
 
         x_in = c_in * x
-        F_x = self.denoise_fn_F((x_in).to(dtype), c_noise.flatten(), label)
+        F_x = self.denoise_fn_F((x_in).to(dtype), c_noise.flatten(), constraint)
 
         assert F_x.dtype == dtype
         D_x = c_skip * x + c_out * F_x.to(torch.float32)
@@ -183,6 +183,6 @@ class Model(nn.Module):
         self.denoise_fn_D = Precond(denoise_fn, hid_dim)
         self.loss_fn = EDMLoss(P_mean, P_std, sigma_data, hid_dim=hid_dim, gamma=5, opts=None)
 
-    def forward(self, x, label):
-        loss = self.loss_fn(self.denoise_fn_D, x, label)
+    def forward(self, x, constraint):
+        loss = self.loss_fn(self.denoise_fn_D, x, constraint)
         return loss.mean(-1).mean()

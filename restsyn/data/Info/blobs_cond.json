@@ -1,0 +1,21 @@
+{
+    "name": "blobs_cond",
+    "task_type": "multiclass",
+    "header": "infer",
+    "column_names": [
+        "x coord",
+        "y coord",
+        "cond"
+    ],
+    "num_col_idx": [
+        0,
+        1
+    ],
+    "cat_col_idx": [],
+    "target_col_idx": [
+        2
+    ],
+    "file_type": "csv",
+    "data_path": "data/blobs_cond/blobs_cond.csv",
+    "test_path": null
+    }

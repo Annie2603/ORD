@@ -27,12 +27,9 @@ def main(args):
 
     #####
     # get labels/
-    label_path = f'{dataset_dir}/y_train.npy'
-    label = np.load(label_path)
-    label = label.reshape(-1)
-    label_hot = np.zeros((label.shape[0], len(np.unique(label))), dtype=int)
-    label_hot[np.arange(label.size), label] = 1
-    label_dim = label_hot.shape[1] # n_classes
+    constraint_path = f'{dataset_dir}/constraints.npy'
+    constraint = np.load(constraint_path)
+    constraint_dim = constraint.shape[1] 
     #####
 
 
@@ -44,16 +41,16 @@ def main(args):
     train_data = train_z
 
     #####
-    train_data = np.concatenate([train_data, label_hot], axis=1)
-    class_counts = [0] * label_dim
-    for i in label:
-        class_counts[i] += 1
+    train_data = np.concatenate([train_data, constraint], axis=1)
+    # class_counts = [0] * constraint_dim
+    # for i in constraint:
+    #     class_counts[i] += 1
     
-    sample_weights = [0] * len(label)
-    for i in range(len(label)):
-        sample_weights[i] = np.log(class_counts[label[i]])
+    # sample_weights = [0] * len(constraint)
+    # for i in range(len(constraint)):
+    #     sample_weights[i] = np.log(class_counts[constraint[i]])
     
-    sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights))
+    # sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights))
     #####
     batch_size = 4096
     train_loader = DataLoader(
@@ -65,7 +62,7 @@ def main(args):
 
     num_epochs = 10000 + 1
     #####
-    denoise_fn = MLPDiffusion(in_dim, label_dim, 1024).to(device)
+    denoise_fn = MLPDiffusion(in_dim, constraint_dim, 1024).to(device)
     print(denoise_fn)
 
     num_params = sum(p.numel() for p in denoise_fn.parameters())
@@ -91,10 +88,10 @@ def main(args):
         for batch in pbar:
             inputs = batch.float().to(device)
             #####
-            label = inputs[:,-label_dim:]
-            inputs = inputs[:,:-label_dim]
+            constraint = inputs[:,-constraint_dim:]
+            inputs = inputs[:,:-constraint_dim]
             #####
-            loss = model(inputs, label)
+            loss = model(inputs, constraint)
         
             loss = loss.mean()
 

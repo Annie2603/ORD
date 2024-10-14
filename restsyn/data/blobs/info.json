@@ -1,0 +1,65 @@
+{
+    "name": "blobs",
+    "task_type": "binclass",
+    "header": "infer",
+    "column_names": [
+        "x coord",
+        "y coord",
+        "class"
+    ],
+    "num_col_idx": [
+        0,
+        1
+    ],
+    "cat_col_idx": [],
+    "target_col_idx": [
+        2
+    ],
+    "file_type": "csv",
+    "data_path": "data/blobs/blobs.csv",
+    "test_path": null,
+    "column_info": {
+        "0": {},
+        "type": "categorical",
+        "max": 54.27053086398389,
+        "min": -71.20275363167897,
+        "1": {},
+        "2": {},
+        "categorizes": [
+            0,
+            1
+        ]
+    },
+    "train_num": 7650,
+    "test_num": 850,
+    "idx_mapping": {
+        "0": 0,
+        "1": 1,
+        "2": 2
+    },
+    "inverse_idx_mapping": {
+        "0": 0,
+        "1": 1,
+        "2": 2
+    },
+    "idx_name_mapping": {
+        "0": "x coord",
+        "1": "y coord",
+        "2": "class"
+    },
+    "metadata": {
+        "columns": {
+            "0": {
+                "sdtype": "numerical",
+                "computer_representation": "Float"
+            },
+            "1": {
+                "sdtype": "numerical",
+                "computer_representation": "Float"
+            },
+            "2": {
+                "sdtype": "categorical"
+            }
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "blobs_aaai",
+    "task_type": "binclass",
+    "header": "infer",
+    "column_names": [
+        "x coord","y coord","class"
+    ],
+    "num_col_idx": [
+       0,1
+    ],
+    "cat_col_idx": [
+       
+    ],
+    "target_col_idx": [
+       2
+    ],
+    "file_type": "csv",
+    "data_path": "data/blobs_aaai/blobs_aaai.csv",
+    "test_path": null
+   
+}
