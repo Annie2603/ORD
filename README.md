@@ -1,5 +1,7 @@
 # ORD
 
+The official implementation of the paper "Synthetic Tabular Data Generation for Imbalanced Classification: The Surprising Effectiveness of an Overlap Class". https://arxiv.org/abs/2412.15657
+
 ## Structure
 - Naming conventions
 - Data folder has 
