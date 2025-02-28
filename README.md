@@ -1,7 +1,7 @@
 # ORD
 
 The official implementation of the paper  
-D'souza, Annie, and Sunita Sarawagi. "Synthetic Tabular Data Generation for Imbalanced Classification: The Surprising Effectiveness of an Overlap Class." arXiv preprint arXiv:2412.15657 (2024)."
+D'souza, Annie, and Sunita Sarawagi. "Synthetic Tabular Data Generation for Imbalanced Classification: The Surprising Effectiveness of an Overlap Class." arXiv preprint arXiv:2412.15657 (2024)."  
 https://arxiv.org/abs/2412.15657
 
 ## Structure
